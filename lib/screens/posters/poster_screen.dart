@@ -10,6 +10,7 @@ import 'components/add_poster_form.dart';
 class PosterScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    context.dataProvider.getAllPosters();
     return Responsive(
       mobile: _buildMobileLayout(context),
       tablet: _buildTabletLayout(context),

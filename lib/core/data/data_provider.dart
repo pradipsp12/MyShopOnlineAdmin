@@ -20,6 +20,11 @@ import '../../models/variant.dart';
 class DataProvider extends ChangeNotifier {
   HttpService service = HttpService();
 
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+  String? _errorMessage;
+  String? get errorMessage => _errorMessage;
+
   List<Category> _allCategories = [];
   List<Category> _filteredCategories = [];
   List<Category> get categories => _filteredCategories;
@@ -61,21 +66,24 @@ class DataProvider extends ChangeNotifier {
   List<MyNotification> _filteredNotifications = [];
   List<MyNotification> get notifications => _filteredNotifications;
 
+
+
   DataProvider() {
-    getAllProduct();
-    getAllCategory();
-    getAllSubCategory();
-    getAllBrands();
-    getAllVariantType();
-    getAllVariant();
-    getAllPosters();
-    getAllCoupons();
+    // getAllProduct();
+    // getAllCategory();
+    // getAllSubCategory();
+    // getAllBrands();
+    // getAllVariantType();
+    // getAllVariant();
+    // getAllPosters();
+    // getAllCoupons();
     getAllOrders();
-    getAllNotifications();
+    // getAllNotifications();
   }
 
   Future<List<Category>> getAllCategory({bool showSnack = false}) async {
     try {
+      _isLoading = true;
       Response response = await service.getItems(endpointUrl: 'categories');
 
       if (response.isOk) {
@@ -93,7 +101,9 @@ class DataProvider extends ChangeNotifier {
         SnackBarHelper.showErrorSnackBar(
             'failed to load category: ${response.body?['message'] ?? response.statusText}');
       }
+      _isLoading = false;
     } catch (e) {
+      _isLoading = false;
       SnackBarHelper.showErrorSnackBar(e.toString());
       rethrow;
     }
@@ -115,6 +125,7 @@ class DataProvider extends ChangeNotifier {
 
   Future<List<SubCategory>> getAllSubCategory({bool showSnack = false}) async {
     try {
+      _isLoading = true;
       final response = await service.getItems(endpointUrl: 'subCategory');
       if (response.isOk) {
         ApiResponse<List<SubCategory>> apiResponse =
@@ -131,7 +142,10 @@ class DataProvider extends ChangeNotifier {
         SnackBarHelper.showErrorSnackBar(
             'failed to fetch sub-category : ${response.body?['message'] ?? response.statusText}');
       }
+      _isLoading = false;
     } catch (e) {
+      _isLoading = false;
+      // print(e);
       print(e);
       SnackBarHelper.showErrorSnackBar('failed to fetch sub-category :${e}');
       rethrow;
@@ -155,6 +169,7 @@ class DataProvider extends ChangeNotifier {
 
   Future<List<Brand>> getAllBrands({bool showSnack = false}) async {
     try {
+      _isLoading = true;
       final response = await service.getItems(endpointUrl: 'brand');
       if (response.isOk) {
         ApiResponse<List<Brand>> apiResponse = ApiResponse.fromJson(
@@ -169,8 +184,10 @@ class DataProvider extends ChangeNotifier {
         SnackBarHelper.showErrorSnackBar(
             'failed to load brand ${response.body?['message'] ?? response.statusText}');
       }
+      _isLoading = false;
     } catch (e) {
       print(e);
+      _isLoading = false;
       SnackBarHelper.showErrorSnackBar('Failed to load brand ${e}');
       rethrow;
     }
@@ -192,6 +209,7 @@ class DataProvider extends ChangeNotifier {
 
   Future<List<VariantType>> getAllVariantType({bool showSnack = false}) async {
     try {
+      _isLoading = true;
       final response = await service.getItems(endpointUrl: 'variantTypes');
       if (response.isOk) {
         ApiResponse<List<VariantType>> apiResponse = ApiResponse.fromJson(
@@ -207,8 +225,10 @@ class DataProvider extends ChangeNotifier {
         SnackBarHelper.showErrorSnackBar(
             'Failed to load variant types: ${response.body?['message'] ?? response.statusText}');
       }
+      _isLoading = false;
     } catch (e) {
       print(e);
+      _isLoading = false;
       SnackBarHelper.showErrorSnackBar('Failed to load variant types: $e');
       rethrow;
     }
@@ -230,6 +250,7 @@ class DataProvider extends ChangeNotifier {
 
   Future<List<Variant>> getAllVariant({bool showSnack = false}) async {
     try {
+      _isLoading = true;
       final response = await service.getItems(endpointUrl: 'variants');
       if (response.isOk) {
         ApiResponse<List<Variant>> apiResponse = ApiResponse.fromJson(
@@ -245,8 +266,10 @@ class DataProvider extends ChangeNotifier {
         SnackBarHelper.showErrorSnackBar(
             'Failed to load variants: ${response.body?['message'] ?? response.statusText}');
       }
+      _isLoading = false;
     } catch (e) {
       print(e);
+      _isLoading = false;
       SnackBarHelper.showErrorSnackBar('Failed to load variants: $e');
       rethrow;
     }
@@ -268,6 +291,7 @@ class DataProvider extends ChangeNotifier {
 
   getAllProduct({bool showSnack = false}) async {
     try {
+      _isLoading = true;
       final response = await service.getItems(endpointUrl: 'products');
       if (response.isOk) {
         ApiResponse<List<Product>> apiResponse = ApiResponse.fromJson(
@@ -283,8 +307,10 @@ class DataProvider extends ChangeNotifier {
         SnackBarHelper.showErrorSnackBar(
             'Failed to load products: ${response.body?['message'] ?? response.statusText}');
       }
+      _isLoading = false;
     } catch (e) {
       print(e);
+      _isLoading = false;
       SnackBarHelper.showErrorSnackBar('Failed to load products: $e');
       rethrow;
     }
@@ -316,6 +342,7 @@ class DataProvider extends ChangeNotifier {
 
 getAllCoupons({bool showSnack = false}) async {
     try {
+      _isLoading = true;
       final response = await service.getItems(endpointUrl: 'couponCodes');
       if (response.isOk) {
         ApiResponse<List<Coupon>> apiResponse = ApiResponse.fromJson(
@@ -331,8 +358,10 @@ getAllCoupons({bool showSnack = false}) async {
         SnackBarHelper.showErrorSnackBar(
             'Failed to load coupons: ${response.body?['message'] ?? response.statusText}');
       }
+      _isLoading = false;
     } catch (e) {
       print(e);
+      _isLoading = false;
       SnackBarHelper.showErrorSnackBar('Failed to load coupons: $e');
       rethrow;
     }
@@ -355,6 +384,7 @@ getAllCoupons({bool showSnack = false}) async {
 
 getAllPosters({bool showSnack = false}) async {
     try {
+      _isLoading = true;
       final response = await service.getItems(endpointUrl: 'posters');
       if (response.isOk) {
         ApiResponse<List<Poster>> apiResponse = ApiResponse.fromJson(
@@ -370,7 +400,9 @@ getAllPosters({bool showSnack = false}) async {
         SnackBarHelper.showErrorSnackBar(
             'Failed to load posters: ${response.body?['message'] ?? response.statusText}');
       }
+      _isLoading = false;
     } catch (e) {
+      _isLoading = false;
       print(e);
       SnackBarHelper.showErrorSnackBar('Failed to load posters: $e');
       rethrow;
@@ -395,6 +427,7 @@ getAllPosters({bool showSnack = false}) async {
 
   Future<List<Order>> getAllOrders({bool showSnack = false})async {
     try {
+      _isLoading = true;
       final response = await service.getItems(endpointUrl: 'orders');
       if (response.isOk) {
         ApiResponse<List<Order>> apiResponse = ApiResponse<List<Order>>.fromJson(
@@ -410,8 +443,10 @@ getAllPosters({bool showSnack = false}) async {
         SnackBarHelper.showErrorSnackBar(
             'Failed to load orders: ${response.body?['message'] ?? response.statusText}');
       }
+      _isLoading = false;
     } catch (e) {
       print(e);
+      _isLoading = false;
       SnackBarHelper.showErrorSnackBar('Failed to load orders: $e');
       rethrow;
     }
@@ -454,6 +489,7 @@ int calculateOrdersWithStatus({String? status}){
   
   Future<List<MyNotification>> getAllNotifications({bool showSnack = false}) async {
     try {
+      _isLoading = true;
       final response = await service.getItems(endpointUrl: 'notification/all-notification');
       if (response.isOk) {
         ApiResponse<List<MyNotification>> apiResponse = ApiResponse<List<MyNotification>>.fromJson(
@@ -469,8 +505,10 @@ int calculateOrdersWithStatus({String? status}){
         SnackBarHelper.showErrorSnackBar(
             'Failed to load notifications: ${response.body?['message'] ?? response.statusText}');
       }
+      _isLoading = false;
     } catch (e) {
       print(e);
+      _isLoading = false;
       SnackBarHelper.showErrorSnackBar('Failed to load notifications: $e');
       rethrow;
     }

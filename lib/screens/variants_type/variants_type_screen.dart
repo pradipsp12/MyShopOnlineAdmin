@@ -10,6 +10,7 @@ import 'package:admin/utility/extensions.dart';
 class VariantsTypeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    context.dataProvider.getAllVariantType();
     return Responsive(
       mobile: _buildMobileLayout(context),
       tablet: _buildTabletLayout(context),

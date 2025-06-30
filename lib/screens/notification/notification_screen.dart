@@ -14,6 +14,7 @@ class NotificationScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.dataProvider.getAllNotifications();
     return Responsive(
       mobile: _buildMobileLayout(context),
       tablet: _buildTabletLayout(context),

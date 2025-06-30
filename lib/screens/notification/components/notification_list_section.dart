@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:provider/provider.dart';
+import 'package:shimmer/shimmer.dart';
 import '../../../core/data/data_provider.dart';
 import '../../../models/my_notification.dart';
 import '../../../utility/color_list.dart';
@@ -40,21 +41,113 @@ class NotificationListSection extends StatelessWidget {
                 ),
           ),
           Gap(defaultPadding * 0.5),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              return SizedBox(
-                width: double.infinity,
-                child: isMobile
-                    ? SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: _buildDataTable(context, constraints, columnSpacing),
-                      )
-                    : _buildDataTable(context, constraints, columnSpacing),
+          Consumer<DataProvider>(
+            builder: (context, dataProvider, child) {
+              if (dataProvider.isLoading) {
+                return _buildShimmerEffect(
+                  isMobile: isMobile,
+                  isTablet: isTablet,
+                  context: context,
+                );
+              }
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  return SizedBox(
+                    width: double.infinity,
+                    child: isMobile
+                        ? SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: _buildDataTable(context, constraints, columnSpacing),
+                          )
+                        : _buildDataTable(context, constraints, columnSpacing),
+                  );
+                },
               );
             },
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildShimmerEffect({
+    required bool isMobile,
+    required bool isTablet,
+    required BuildContext context,
+  }) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final columnSpacing = isMobile ? defaultPadding * 0.5 : defaultPadding;
+    
+    // Calculate column widths as percentages of screen width
+    final titleColumnWidth = screenWidth * (isMobile ? 0.25 : 0.2);
+    final descColumnWidth = screenWidth * (isMobile ? 0.3 : 0.25);
+    final dateColumnWidth = screenWidth * (isMobile ? 0.2 : 0.15);
+    final actionColumnWidth = screenWidth * (isMobile ? 0.1 : 0.08);
+    final totalTableWidth = titleColumnWidth + descColumnWidth + 
+                          dateColumnWidth + (actionColumnWidth * 2) + 
+                          (columnSpacing * 4);
+
+    return Shimmer.fromColors(
+      baseColor: Colors.grey.shade800,
+      highlightColor: Colors.grey.shade700,
+      child: SizedBox(
+        width: double.infinity,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: SizedBox(
+            width: totalTableWidth,
+            child: DataTable(
+              columnSpacing: columnSpacing,
+              dataRowMinHeight: isMobile ? 40 : isTablet ? 44 : 48,
+              dataRowMaxHeight: isMobile ? 48 : isTablet ? 52 : 56,
+              headingTextStyle: TextStyle(
+                fontSize: isMobile ? 12 : isTablet ? 13 : 14,
+                color: Colors.white70,
+              ),
+              columns: [
+                DataColumn(label: _buildShimmerCell(titleColumnWidth)),
+                DataColumn(label: _buildShimmerCell(descColumnWidth)),
+                DataColumn(label: _buildShimmerCell(dateColumnWidth)),
+                DataColumn(label: _buildShimmerCell(actionColumnWidth)),
+                DataColumn(label: _buildShimmerCell(actionColumnWidth)),
+              ],
+              rows: List.generate(
+                5,
+                (index) => DataRow(
+                  cells: [
+                    DataCell(Row(
+                      children: [
+                        Container(
+                          width: isMobile ? 18 : 24,
+                          height: isMobile ? 18 : 24,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        SizedBox(width: columnSpacing),
+                        _buildShimmerCell(titleColumnWidth - 24 - columnSpacing, height: 16),
+                      ],
+                    )),
+                    DataCell(_buildShimmerCell(descColumnWidth, height: 16)),
+                    DataCell(_buildShimmerCell(dateColumnWidth, height: 16)),
+                    DataCell(_buildShimmerCell(actionColumnWidth, height: isMobile ? 30 : 40)),
+                    DataCell(_buildShimmerCell(actionColumnWidth, height: isMobile ? 30 : 40)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShimmerCell(double width, {double height = 16}) {
+    return Container(
+      width: width,
+      height: height,
+      color: Colors.white,
     );
   }
 
@@ -65,7 +158,7 @@ class NotificationListSection extends StatelessWidget {
         ? constraints.maxWidth
         : isTablet
             ? constraints.maxWidth * 0.9
-            : 600; // Minimum width for mobile to ensure content fits
+            : 600;
 
     return ConstrainedBox(
       constraints: BoxConstraints(minWidth: minTableWidth),

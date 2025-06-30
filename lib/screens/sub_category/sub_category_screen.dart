@@ -10,6 +10,7 @@ import 'package:admin/utility/extensions.dart';
 class SubCategoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    context.dataProvider.getAllSubCategory();
     return Responsive(
       mobile: _buildMobileLayout(context),
       tablet: _buildTabletLayout(context),

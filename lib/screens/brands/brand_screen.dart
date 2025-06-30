@@ -10,6 +10,7 @@ import 'package:admin/utility/extensions.dart';
 class BrandScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    context.dataProvider.getAllBrands();
     return Responsive(
       mobile: _buildMobileLayout(context),
       tablet: _buildTabletLayout(context),

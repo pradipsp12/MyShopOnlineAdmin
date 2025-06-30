@@ -10,6 +10,7 @@ import 'components/category_list_section.dart';
 class CategoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    context.dataProvider.getAllCategory();
     return Responsive(
       mobile: _buildMobileLayout(context),
       tablet: _buildTabletLayout(context),

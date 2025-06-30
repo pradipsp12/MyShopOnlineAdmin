@@ -10,6 +10,7 @@ import '../../widgets/custom_dropdown.dart';
 class OrderScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    context.dataProvider.getAllOrders();
     return Responsive(
       mobile: _buildMobileLayout(context),
       tablet: _buildTabletLayout(context),

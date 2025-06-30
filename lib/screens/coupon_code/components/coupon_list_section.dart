@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:provider/provider.dart';
+import 'package:shimmer/shimmer.dart';
 import '../../../core/data/data_provider.dart';
 import '../../../models/coupon.dart';
 import '../../../utility/color_list.dart';
 import '../../../utility/constants.dart';
+import '../../../utility/responsive.dart';
 import 'add_coupon_form.dart';
 
 class CouponListSection extends StatelessWidget {
@@ -13,6 +16,14 @@ class CouponListSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop = Responsive.isDesktop(context);
+    final isTablet = Responsive.isTablet(context);
+    final double columnSpacing = isMobile
+        ? defaultPadding * 0.5
+        : isTablet
+            ? defaultPadding * 0.8
+            : defaultPadding;
+
     return Container(
       padding: EdgeInsets.all(isMobile ? defaultPadding * 0.5 : defaultPadding),
       decoration: BoxDecoration(
@@ -28,108 +39,264 @@ class CouponListSection extends StatelessWidget {
                   fontSize: isMobile ? 14 : 16,
                 ),
           ),
-          SizedBox(
-            width: double.infinity,
-            child: Consumer<DataProvider>(
-              builder: (context, dataProvider, child) {
-                return DataTable(
-                  columnSpacing: isMobile ? defaultPadding * 0.5 : defaultPadding,
-                  columns: [
-                    DataColumn(
-                      label: Text("Coupon Name", style: TextStyle(fontSize: isMobile ? 12 : 14)),
-                    ),
-                    DataColumn(
-                      label: Text("Status", style: TextStyle(fontSize: isMobile ? 12 : 14)),
-                    ),
-                    DataColumn(
-                      label: Text("Type", style: TextStyle(fontSize: isMobile ? 12 : 14)),
-                    ),
-                    DataColumn(
-                      label: Text("Amount", style: TextStyle(fontSize: isMobile ? 12 : 14)),
-                    ),
-                    DataColumn(
-                      label: Text("Edit", style: TextStyle(fontSize: isMobile ? 12 : 14)),
-                    ),
-                    DataColumn(
-                      label: Text("Delete", style: TextStyle(fontSize: isMobile ? 12 : 14)),
-                    ),
-                  ],
-                  rows: List.generate(
-                    dataProvider.coupons.length,
-                    (index) => couponDataRow(
-                      dataProvider.coupons[index],
-                      index + 1,
-                      edit: () {
-                        showAddCouponForm(context, dataProvider.coupons[index]);
-                      },
-                      delete: () {
-                        deleteCouponDialoge(context, dataProvider.coupons[index]);
-                      },
-                      isMobile: isMobile,
-                    ),
-                  ),
+          Gap(defaultPadding * 0.5),
+          Consumer<DataProvider>(
+            builder: (context, dataProvider, child) {
+              if (dataProvider.isLoading) {
+                return _buildShimmerEffect(
+                  isMobile: isMobile,
+                  isTablet: isTablet,
+                  context: context,
                 );
-              },
-            ),
+              }
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  return SizedBox(
+                    width: double.infinity,
+                    child: isMobile
+                        ? SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: _buildDataTable(context, constraints, columnSpacing, dataProvider),
+                          )
+                        : _buildDataTable(context, constraints, columnSpacing, dataProvider),
+                  );
+                },
+              );
+            },
           ),
         ],
       ),
     );
   }
+
+  Widget _buildShimmerEffect({
+    required bool isMobile,
+    required bool isTablet,
+    required BuildContext context,
+  }) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final columnSpacing = isMobile ? defaultPadding * 0.5 : defaultPadding;
+    
+    // Calculate column widths as percentages of screen width
+    final couponColumnWidth = screenWidth * (isMobile ? 0.3 : 0.25);
+    final statusColumnWidth = screenWidth * (isMobile ? 0.15 : 0.1);
+    final typeColumnWidth = screenWidth * (isMobile ? 0.15 : 0.1);
+    final amountColumnWidth = screenWidth * (isMobile ? 0.15 : 0.1);
+    final actionColumnWidth = screenWidth * (isMobile ? 0.1 : 0.08);
+    final totalTableWidth = couponColumnWidth + statusColumnWidth + 
+                          typeColumnWidth + amountColumnWidth + 
+                          (actionColumnWidth * 2) + (columnSpacing * 5);
+
+    return Shimmer.fromColors(
+      baseColor: Colors.grey.shade800,
+      highlightColor: Colors.grey.shade700,
+      child: SizedBox(
+        width: double.infinity,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: SizedBox(
+            width: totalTableWidth,
+            child: DataTable(
+              columnSpacing: columnSpacing,
+              dataRowMinHeight: isMobile ? 40 : isTablet ? 44 : 48,
+              dataRowMaxHeight: isMobile ? 48 : isTablet ? 52 : 56,
+              headingTextStyle: TextStyle(
+                fontSize: isMobile ? 12 : isTablet ? 13 : 14,
+                color: Colors.white70,
+              ),
+              columns: [
+                DataColumn(label: _buildShimmerCell(couponColumnWidth)),
+                DataColumn(label: _buildShimmerCell(statusColumnWidth)),
+                DataColumn(label: _buildShimmerCell(typeColumnWidth)),
+                DataColumn(label: _buildShimmerCell(amountColumnWidth)),
+                DataColumn(label: _buildShimmerCell(actionColumnWidth)),
+                DataColumn(label: _buildShimmerCell(actionColumnWidth)),
+              ],
+              rows: List.generate(
+                5,
+                (index) => DataRow(
+                  cells: [
+                    DataCell(Row(
+                      children: [
+                        Container(
+                          width: isMobile ? 20 : 24,
+                          height: isMobile ? 20 : 24,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        SizedBox(width: columnSpacing),
+                        _buildShimmerCell(couponColumnWidth - 24 - columnSpacing, height: 16),
+                      ],
+                    )),
+                    DataCell(_buildShimmerCell(statusColumnWidth, height: 16)),
+                    DataCell(_buildShimmerCell(typeColumnWidth, height: 16)),
+                    DataCell(_buildShimmerCell(amountColumnWidth, height: 16)),
+                    DataCell(_buildShimmerCell(actionColumnWidth, height: isMobile ? 30 : 40)),
+                    DataCell(_buildShimmerCell(actionColumnWidth, height: isMobile ? 30 : 40)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShimmerCell(double width, {double height = 16}) {
+    return Container(
+      width: width,
+      height: height,
+      color: Colors.white,
+    );
+  }
+
+  Widget _buildDataTable(BuildContext context, BoxConstraints constraints, double columnSpacing, DataProvider dataProvider) {
+    final isDesktop = Responsive.isDesktop(context);
+    final isTablet = Responsive.isTablet(context);
+    final double minTableWidth = isDesktop
+        ? constraints.maxWidth
+        : isTablet
+            ? constraints.maxWidth * 0.9
+            : 700;
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(minWidth: minTableWidth),
+      child: DataTable(
+        columnSpacing: columnSpacing,
+        dataRowMinHeight: isMobile ? 40 : isTablet ? 44 : 48,
+        dataRowMaxHeight: isMobile ? 48 : isTablet ? 52 : 56,
+        headingTextStyle: TextStyle(
+          fontSize: isMobile ? 12 : isTablet ? 13 : 14,
+          color: Colors.white70,
+        ),
+        dataTextStyle: TextStyle(
+          fontSize: isMobile ? 12 : isTablet ? 13 : 14,
+          color: Colors.white,
+        ),
+        columns: [
+          DataColumn(label: Text("Coupon Name", style: TextStyle(fontSize: isMobile ? 12 : 14))),
+          DataColumn(label: Text("Status", style: TextStyle(fontSize: isMobile ? 12 : 14))),
+          DataColumn(label: Text("Type", style: TextStyle(fontSize: isMobile ? 12 : 14))),
+          DataColumn(label: Text("Amount", style: TextStyle(fontSize: isMobile ? 12 : 14))),
+          DataColumn(label: Text("Edit", style: TextStyle(fontSize: isMobile ? 12 : 14))),
+          DataColumn(label: Text("Delete", style: TextStyle(fontSize: isMobile ? 12 : 14))),
+        ],
+        rows: List.generate(
+          dataProvider.coupons.length,
+          (index) => couponDataRow(
+            dataProvider.coupons[index],
+            index + 1,
+            edit: () {
+              showAddCouponForm(context, dataProvider.coupons[index]);
+            },
+            delete: () {
+              deleteCouponDialoge(context, dataProvider.coupons[index]);
+            },
+            isMobile: isMobile,
+            isTablet: isTablet,
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-DataRow couponDataRow(Coupon coupon, int index, {Function? edit, Function? delete, bool isMobile = false}) {
+DataRow couponDataRow(
+  Coupon coupon,
+  int index, {
+  Function? edit,
+  Function? delete,
+  bool isMobile = false,
+  bool isTablet = false,
+}) {
   return DataRow(
     cells: [
       DataCell(
         Row(
           children: [
             Container(
-              height: isMobile ? 20 : 24,
-              width: isMobile ? 20 : 24,
+              height: isMobile ? 20 : isTablet ? 22 : 24,
+              width: isMobile ? 20 : isTablet ? 22 : 24,
               decoration: BoxDecoration(
                 color: colors[index % colors.length],
                 shape: BoxShape.circle,
               ),
-              child: Text(
-                index.toString(),
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: isMobile ? 10 : 12, color: Colors.white),
+              child: Center(
+                child: Text(
+                  index.toString(),
+                  style: TextStyle(
+                    fontSize: isMobile ? 10 : isTablet ? 11 : 12,
+                    color: Colors.white,
+                  ),
+                ),
               ),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: isMobile ? defaultPadding * 0.5 : defaultPadding),
+              padding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? defaultPadding * 0.5 : defaultPadding),
               child: Text(
-                coupon.couponCode ?? '',
-                style: TextStyle(fontSize: isMobile ? 12 : 14),
+                coupon.couponCode ?? '-',
+                style: TextStyle(fontSize: isMobile ? 12 : isTablet ? 13 : 14),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
         ),
       ),
-      DataCell(Text(coupon.status ?? '', style: TextStyle(fontSize: isMobile ? 12 : 14))),
-      DataCell(Text(coupon.discountType ?? '', style: TextStyle(fontSize: isMobile ? 12 : 14))),
-      DataCell(Text('${coupon.discountAmount}' ?? '', style: TextStyle(fontSize: isMobile ? 12 : 14))),
-      DataCell(IconButton(
-        onPressed: () {
-          if (edit != null) edit();
-        },
-        icon: Icon(
-          Icons.edit,
-          color: Colors.white,
-          size: isMobile ? 18 : 24,
+      DataCell(
+        Text(
+          coupon.status ?? '-',
+          style: TextStyle(fontSize: isMobile ? 12 : isTablet ? 13 : 14),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
-      )),
-      DataCell(IconButton(
-        onPressed: () {
-          if (delete != null) delete();
-        },
-        icon: Icon(
-          Icons.delete,
-          color: Colors.red,
-          size: isMobile ? 18 : 24,
+      ),
+      DataCell(
+        Text(
+          coupon.discountType ?? '-',
+          style: TextStyle(fontSize: isMobile ? 12 : isTablet ? 13 : 14),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
-      )),
+      ),
+      DataCell(
+        Text(
+          '${coupon.discountAmount ?? '0'}',
+          style: TextStyle(fontSize: isMobile ? 12 : isTablet ? 13 : 14),
+        ),
+      ),
+      DataCell(
+        Center(
+          child: IconButton(
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            onPressed: edit as void Function()?,
+            icon: Icon(
+              Icons.edit,
+              color: Colors.blue.shade300,
+              size: isMobile ? 16 : isTablet ? 18 : 20,
+            ),
+          ),
+        ),
+      ),
+      DataCell(
+        Center(
+          child: IconButton(
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            onPressed: delete as void Function()?,
+            icon: Icon(
+              Icons.delete,
+              color: Colors.red.shade300,
+              size: isMobile ? 16 : isTablet ? 18 : 20,
+            ),
+          ),
+        ),
+      ),
     ],
   );
 }

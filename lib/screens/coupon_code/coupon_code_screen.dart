@@ -10,6 +10,7 @@ import 'components/add_coupon_form.dart';
 class CouponCodeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    context.dataProvider.getAllCoupons();
     return Responsive(
       mobile: _buildMobileLayout(context),
       tablet: _buildTabletLayout(context),

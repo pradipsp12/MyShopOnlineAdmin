@@ -10,8 +10,11 @@ import 'components/product_list_section.dart';
 import 'components/product_summery_section.dart';
 
 class DashboardScreen extends StatelessWidget {
+  
   @override
   Widget build(BuildContext context) {
+    context.dataProvider.getAllProduct();
+    context.dataProvider.getAllOrders();
     return Responsive(
       mobile: _buildMobileLayout(context),
       tablet: _buildTabletLayout(context),
